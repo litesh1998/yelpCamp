@@ -2,7 +2,7 @@
 <div class="row">
   <h1 class="text-center">Edit Campground</h1>
   <div class="col-6 offset-3">
-    <form action="/campgrounds/<%= campground._id %>/?_method=PUT" method="post">
+    <form action="/campgrounds/<%= campground._id %>/?_method=PUT" method="post" novalidate class="validated-form">
       <div class="mb-3">
         <label class="form-label" for="title">Title</label>
         <input
@@ -11,7 +11,11 @@
           name="campground[title]"
           id="title"
           value="<%= campground.title %>"
+          required
         />
+        <div class="valid-feedback">
+          Looks Good!
+        </div>
       </div>
       <div class="mb-3">
         <label class="form-label" for="location">Location</label>
@@ -21,7 +25,11 @@
           name="campground[location]"
           id="location"
           value="<%= campground.location %>"
+          required
         />
+        <div class="valid-feedback">
+          Looks Good!
+        </div>
       </div>
       <div class="mb-3">
         <label class="form-label" for="image">Image</label>
@@ -31,7 +39,11 @@
           name="campground[image]"
           id="image"
           value="<%= campground.image %>"
+          required
         />
+        <div class="valid-feedback">
+          Looks Good!
+        </div>
       </div>
       
       <div class="mb-3">
@@ -42,7 +54,11 @@
           name="campground[price]"
           id="price"
           value="<%= campground.price %>"
+          required
         />
+        <div class="valid-feedback">
+          Looks Good!
+        </div>
       </div>
       <div class="mb-3">
         <label class="form-label" for="description">Description</label>
@@ -51,7 +67,11 @@
           type="text"
           name="campground[description]"
           id="description"
+          required
         ><%= campground.description %></textarea>
+        <div class="valid-feedback">
+          Looks Good!
+        </div>
     </div>
         <a href="/campgrounds/<%= campground._id %>" class="btn btn-info">Go back to Campground</a>
       <button class="btn btn-success" type="submit">Update Campground</button>
