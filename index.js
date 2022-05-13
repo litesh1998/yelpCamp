@@ -1,3 +1,7 @@
+if (process.env.NODE_ENV !== "production"){
+  require('dotenv').config();
+}
+
 const express = require("express");
 const path = require("path");
 const mongoose = require("mongoose");
@@ -7,6 +11,8 @@ const session = require("express-session");
 const flash = require("connect-flash");
 const passport = require('passport');
 const passportLocal = require('passport-local')
+const multer  = require('multer')
+const upload = multer({ dest: 'uploads/' })
 
 const ExpressError = require("./utils/ExpressError");
 const User = require('./models/user');
@@ -39,8 +45,8 @@ const sessionConfig = {
   resave: false,
   saveUninitialized: true,
   cookie: {
-    expires: Date.now() + 60000,
-    maxAge: 60000,
+    expires: Date.now() + 600000,
+    maxAge: 600000,
     httpOnly: true,
   },
 };

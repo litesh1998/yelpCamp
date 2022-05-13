@@ -2,7 +2,7 @@
 <div class="row">
   <h1 class="text-center">Edit Campground</h1>
   <div class="col-6 offset-3">
-    <form action="/campgrounds/<%= campground._id %>/?_method=PUT" method="post" novalidate class="validated-form">
+    <form action="/campgrounds/<%= campground._id %>/?_method=PUT" method="post" novalidate class="validated-form" enctype="multipart/form-data">
       <div class="mb-3">
         <label class="form-label" for="title">Title</label>
         <input
@@ -32,20 +32,28 @@
         </div>
       </div>
       <div class="mb-3">
-        <label class="form-label" for="image">Image</label>
+        <label class="form-label" for="image">Add Images</label>
         <input
           class="form-control"
-          type="text"
+          type="file"
           name="campground[image]"
           id="image"
           value="<%= campground.image %>"
-          required
+          multiple
         />
         <div class="valid-feedback">
           Looks Good!
         </div>
       </div>
-      
+      <div class="mb-3">
+        <% campground.image.forEach((img, id)=>{ %> 
+          <img src="<%= img.thumbnail %> " alt="" class="img-thumbnail">
+          <div class="form-check-inline">
+            <input type="checkbox" id="image=<%= id %>" name="deleteImages[]" value="<%= img.filename %>">
+            <label for="image=<%= id %>">Delete?</label>
+          </div>
+        <% }) %> 
+      </div>
       <div class="mb-3">
         <label class="form-label" for="price">Price</label>
         <input
