@@ -13,17 +13,20 @@ const passport = require('passport');
 const passportLocal = require('passport-local')
 const multer  = require('multer')
 const upload = multer({ dest: 'uploads/' })
-
+const mongoSanitize = require('express-mongo-sanitize');
 const ExpressError = require("./utils/ExpressError");
 const User = require('./models/user');
+const MongoStore = require('connect-mongo');
 
 const campgroundRoutes = require("./routes/campgrounds");
 const reviewsRoutes = require("./routes/reviews");
 const authRoutes = require('./routes/auth')
+// const helmet = require('helmet');
 
-
+// const db_url = process.env.DB_URL
+const db_url =  process.env.DB_URL || "mongodb://root:example@localhost:27017/yelp-camp?authSource=admin&readPreference=primary&ssl=false"
 mongoose.connect(
-  "mongodb://root:example@localhost:27017/yelp-camp?authSource=admin&readPreference=primary&ssl=false"
+  db_url
 );
 
 const db = mongoose.connection;
@@ -40,10 +43,25 @@ app.use(express.urlencoded({ extended: true }));
 app.use(methodOveride("_method"));
 app.use(express.static(path.join(__dirname, "public")));
 
+app.use(mongoSanitize());
+const secret =  process.env.SECRET || secret
+
+const store = new MongoStore({
+  mongoUrl: db_url,
+  secret: secret,
+  touchAfter: 24*3600,
+})
+
+store.on('error', function(e){
+  console.log("Session Store Error", e)
+})
+
 const sessionConfig = {
-  secret: "mySecret",
+  name: 'session',
+  secret: secret,
   resave: false,
   saveUninitialized: true,
+  store,
   cookie: {
     expires: Date.now() + 600000,
     maxAge: 600000,
@@ -54,6 +72,57 @@ const sessionConfig = {
 
 app.use(session(sessionConfig));
 app.use(flash());
+// app.use(helmet({crossOriginEmbedderPolicy: false,}));
+
+// const scriptSrcUrls = [
+//   "https://stackpath.bootstrapcdn.com/",
+//   "https://api.tiles.mapbox.com/",
+//   "https://api.mapbox.com/",
+//   "https://kit.fontawesome.com/",
+//   "https://cdnjs.cloudflare.com/",
+//   "https://cdn.jsdelivr.net",
+// ];
+// const styleSrcUrls = [
+//   "https://kit-free.fontawesome.com/",
+//   "https://stackpath.bootstrapcdn.com/",
+//   "https://api.mapbox.com/",
+//   "https://api.tiles.mapbox.com/",
+//   "https://fonts.googleapis.com/",
+//   "https://use.fontawesome.com/",
+//   "cdn.jsdelivr.net",
+//   "api.mapbox.com"
+// ];
+// const connectSrcUrls = [
+//   "https://api.mapbox.com/",
+//   "https://a.tiles.mapbox.com/",
+//   "https://b.tiles.mapbox.com/",
+//   "https://events.mapbox.com/",
+//   "source.unsplash.com"
+// ];
+// const fontSrcUrls = [];
+// app.use(
+//   helmet.contentSecurityPolicy({
+//       directives: {
+//           defaultSrc: [],
+//           connectSrc: ["'self'", ...connectSrcUrls],
+//           scriptSrc: ["'unsafe-inline'", "'self'", ...scriptSrcUrls],
+//           styleSrc: ["'self'", "'unsafe-inline'", ...styleSrcUrls],
+//           workerSrc: ["'self'", "blob:"],
+//           objectSrc: [],
+//           imgSrc: [
+//               "'self'",
+//               "blob:",
+//               "data:",
+//               `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/`, //SHOULD MATCH YOUR CLOUDINARY ACCOUNT! 
+//               "https://images.unsplash.com/",
+//               "https://source.unsplash.com/",
+//           ],
+//           fontSrc: ["'self'", ...fontSrcUrls],
+//       },
+//   })
+// );
+
+
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -70,12 +139,16 @@ app.use((req, res, next)=>{
     
     next();
 })
+app.use(function (req, res, next) {
+  res.setHeader('Cross-Origin-Resource-Policy', 'same-site')
+  next()
+})
 
 app.use('/auth', authRoutes);
 app.use("/campgrounds/:id/reviews", reviewsRoutes);
 app.use("/campgrounds", campgroundRoutes);
 app.get("/", (req, res) => {
-  res.render("home");
+  res.render("home", {profile: process.env.PROFILE});
 });
 
 app.all("*", (req, res, next) => {
@@ -88,6 +161,8 @@ app.use((err, req, res, next) => {
   res.status(statusCode).render("./error", { err });
 });
 
-app.listen(3000, () => {
-  console.log("Serving on Port 3000");
+const port = plrocess.env.PORT || 3000
+
+app.listen(port, () => {
+  console.log(`Serving on Port ${port}`);
 });
